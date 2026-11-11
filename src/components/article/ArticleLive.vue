@@ -435,6 +435,9 @@ function onEditNavigate() {
       @edit-click="onEditClick()"
       @read-click="onReadClick()"
     >
+      <template v-if="$slots['mobile-tools']" #mobile-tools>
+        <slot name="mobile-tools" />
+      </template>
       <VisualEditorArticleShell
         ref="veShellRef"
         v-model:editing="editing"
@@ -470,6 +473,9 @@ function onEditNavigate() {
     :saved-pages-route="props.savedPagesRoute"
     @edit-click="onEditNavigate()"
   >
+    <template v-if="$slots['mobile-tools']" #mobile-tools>
+      <slot name="mobile-tools" />
+    </template>
     <CdxProgressBar v-if="loading" inline aria-label="Loading article" />
 
     <ArticleLoadErrorMessage v-if="error" :error="error" />

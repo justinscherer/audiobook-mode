@@ -282,6 +282,8 @@ function onLanguagePick(row: ArticleLanguageLink) {
       >
         <CdxIcon :icon="cdxIconLanguage" />
       </button>
+      <!-- Extra page tools from the prototype (e.g. a listen button), after Languages. -->
+      <slot name="mobile-tools" />
       <div
         v-if="isLoggedOut"
         class="article-header__icon-toolbar-group article-header__icon-toolbar-group--end"
