@@ -40,45 +40,69 @@ function onTryAudiobook() {
 
 <template>
   <MobileWrapper>
-    <ChromeWrapper skin="mobile">
-      <ArticleLive article="Earth" @parser-ready="onParserReady">
-        <template #mobile-tools>
-          <CdxToggleButton
-            ref="listenButton"
-            :model-value="active"
-            quiet
-            aria-label="Listen to this article"
-            @update:model-value="onListenToggle"
-          >
-            <CdxIcon :icon="cdxIconVolumeUp" />
-          </CdxToggleButton>
-        </template>
-      </ArticleLive>
-    </ChromeWrapper>
+    <div class="immersion">
+      <ChromeWrapper skin="mobile">
+        <ArticleLive article="Earth" @parser-ready="onParserReady">
+          <template #mobile-tools>
+            <CdxToggleButton
+              ref="listenButton"
+              :model-value="active"
+              quiet
+              aria-label="Listen to this article"
+              @update:model-value="onListenToggle"
+            >
+              <CdxIcon :icon="cdxIconVolumeUp" />
+            </CdxToggleButton>
+          </template>
+        </ArticleLive>
+      </ChromeWrapper>
 
-    <TransportBar
-      v-if="active"
-      :status="status"
-      :rate="rate"
-      :progress="progress"
-      @toggle-play="playback.togglePlay"
-      @previous="playback.previous"
-      @next="playback.next"
-      @close="playback.stop"
-      @update:rate="playback.setRate"
-    />
+      <TransportBar
+        v-if="active"
+        :status="status"
+        :rate="rate"
+        :progress="progress"
+        @toggle-play="playback.togglePlay"
+        @previous="playback.previous"
+        @next="playback.next"
+        @close="playback.stop"
+        @update:rate="playback.setRate"
+      />
 
-    <CdxPopover
-      v-model:open="onboardingOpen"
-      :anchor="listenButton"
-      placement="bottom-end"
-      title="🔊 Audiobook mode"
-      use-close-button
-      :primary-action="{ label: 'Try audiobook mode', actionType: 'progressive' }"
-      @primary="onTryAudiobook"
-    >
-      Try our new audio reading experience. Listen to articles in the background so your curiosity
-      can follow you anywhere.
-    </CdxPopover>
+      <CdxPopover
+        v-model:open="onboardingOpen"
+        class="immersion__onboarding"
+        :anchor="listenButton"
+        placement="bottom-end"
+        render-in-place
+        title="🔊 Audiobook mode"
+        use-close-button
+        :primary-action="{ label: 'Try audiobook mode', actionType: 'progressive' }"
+        @primary="onTryAudiobook"
+      >
+        Try our new audio reading experience. Listen to articles in the background so your curiosity
+        can follow you anywhere.
+      </CdxPopover>
+    </div>
   </MobileWrapper>
 </template>
+
+<style>
+/*
+ * Unscoped: CdxPopover's panel doesn't carry the scope attribute.
+ * `overflow-x: clip` makes the column the popover's clipping boundary (so
+ * Codex's shift keeps it inside the column, not the viewport) without becoming
+ * a scroll container, which would break the sticky transport bar.
+ */
+.immersion {
+  position: relative;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  overflow-x: clip;
+}
+
+.immersion__onboarding.cdx-popover {
+  width: calc(100% - 2 * var(--spacing-100));
+}
+</style>
