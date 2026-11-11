@@ -111,6 +111,11 @@ function onTryAudiobook() {
   width: calc(100% - 2 * var(--spacing-100));
 }
 
+/* Codex sits the arrow's base on the popover border, leaving a seam; overlap it by 1px. */
+.immersion__onboarding .cdx-popover__arrow {
+  margin-top: var(--border-width-base);
+}
+
 /* Match the neighbouring Minerva toolbar icons; the pressed state stays Codex's. */
 .immersion__listen.cdx-toggle-button--toggled-off .cdx-icon {
   color: var(--color-subtle);

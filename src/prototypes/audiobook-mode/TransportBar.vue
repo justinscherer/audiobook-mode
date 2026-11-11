@@ -174,4 +174,10 @@ const selectedSpeed = computed({
   border: 0;
   box-shadow: none;
 }
+
+/* Popover opens upward, so the arrow hangs off the bottom edge; overlap the
+   border by 1px so it reads as part of the panel. */
+.transport__speed-popover .cdx-popover__arrow {
+  margin-bottom: var(--border-width-base);
+}
 </style>
