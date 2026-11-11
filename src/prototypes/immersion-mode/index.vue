@@ -46,6 +46,7 @@ function onTryAudiobook() {
           <template #mobile-tools>
             <CdxToggleButton
               ref="listenButton"
+              class="immersion__listen"
               :model-value="active"
               quiet
               aria-label="Listen to this article"
@@ -104,5 +105,10 @@ function onTryAudiobook() {
 
 .immersion__onboarding.cdx-popover {
   width: calc(100% - 2 * var(--spacing-100));
+}
+
+/* Match the neighbouring Minerva toolbar icons; the pressed state stays Codex's. */
+.immersion__listen.cdx-toggle-button--toggled-off .cdx-icon {
+  color: var(--color-subtle);
 }
 </style>
