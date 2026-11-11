@@ -12,8 +12,12 @@ import { cdxIconVolumeUp } from '@wikimedia/codex-icons'
 import ArticleLive from '@/components/article/ArticleLive.vue'
 import ChromeWrapper from '@/components/chrome/ChromeWrapper.vue'
 import MobileWrapper from '@/components/MobileWrapper.vue'
+import { useConfig } from '@/composables/useConfig'
 import TransportBar from './TransportBar.vue'
 import { usePlayback } from './usePlayback'
+
+// Readers try this logged out; Settings can still switch user for this visit.
+useConfig().user.value = 'logged-out'
 
 const playback = usePlayback()
 const { status, active, rate, progress } = playback
