@@ -5,10 +5,10 @@ import {
   cdxIconClose,
   cdxIconDoubleChevronEnd,
   cdxIconDoubleChevronStart,
-  cdxIconPause,
   cdxIconPlay,
 } from '@wikimedia/codex-icons'
 
+import { pauseIcon } from '../audiobook-mode/icons'
 import { SPEEDS, type PlaybackStatus } from './usePlayback'
 
 const props = defineProps<{
@@ -86,7 +86,7 @@ const selectedSpeed = computed({
         :aria-label="props.status === 'paused' ? 'Play' : 'Pause'"
         @click="emit('togglePlay')"
       >
-        <CdxIcon :icon="props.status === 'paused' ? cdxIconPlay : cdxIconPause" />
+        <CdxIcon :icon="props.status === 'paused' ? cdxIconPlay : pauseIcon" />
       </CdxButton>
       <CdxButton
         action="progressive"
