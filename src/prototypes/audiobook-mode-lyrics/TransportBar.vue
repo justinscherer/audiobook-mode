@@ -128,10 +128,12 @@ const selectedSpeed = computed({
 </template>
 
 <style scoped>
+/* Lyrics panel + controls float over the article together. */
 .transport-dock {
   position: sticky;
   bottom: 0;
   z-index: 10;
+  box-shadow: var(--box-shadow-large);
 }
 
 .transport {

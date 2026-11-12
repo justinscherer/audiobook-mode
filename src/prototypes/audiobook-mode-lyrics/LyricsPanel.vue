@@ -81,7 +81,7 @@ onBeforeUnmount(() => resize?.disconnect())
 <style scoped>
 .lyrics {
   padding: var(--spacing-75);
-  background-color: var(--background-color-base);
+  background-color: var(--background-color-interactive);
 }
 
 .lyrics__viewport {
