@@ -97,7 +97,7 @@ onBeforeUnmount(() => resize?.disconnect())
 
 /* Per-line highlight bands, as in the design. */
 .lyrics__highlight {
-  background-color: var(--background-color-progressive-subtle);
+  background-color: var(--background-color-progressive-subtle--active);
   -webkit-box-decoration-break: clone;
   box-decoration-break: clone;
 }
