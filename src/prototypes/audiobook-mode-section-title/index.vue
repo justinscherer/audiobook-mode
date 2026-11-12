@@ -5,34 +5,71 @@ definePage({
   },
 })
 
-import { ref } from 'vue'
+import { computed, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { CdxPopover, CdxToggleButton, CdxIcon } from '@wikimedia/codex'
 import { cdxIconVolumeUp } from '@wikimedia/codex-icons'
 
 import ArticleLive from '@/components/article/ArticleLive.vue'
 import ChromeWrapper from '@/components/chrome/ChromeWrapper.vue'
 import MobileWrapper from '@/components/MobileWrapper.vue'
+import { preservedQueryFromLocationQuery } from '@/appearance/url-query'
 import { useConfig } from '@/composables/useConfig'
+import { useWikiPageTitleQuery } from '@/composables/useWikiPageTitleQuery'
+import {
+  AUDIO_SEARCH_QUERY,
+  DEFAULT_ARTICLE,
+  SEARCH_ROUTE_SEGMENT,
+  hasAudio,
+} from '../audiobook-mode/audioArticles'
 import TransportBar from './TransportBar.vue'
 import { usePlayback } from './usePlayback'
 
 // Readers try this logged out; Settings can still switch user for this visit.
 useConfig().user.value = 'logged-out'
 
+const route = useRoute()
+const router = useRouter()
+const { titleFromQuery } = useWikiPageTitleQuery()
+/** In-article links set `?title=`; audio keeps playing while the reader browses. */
+const article = computed(() => titleFromQuery.value ?? DEFAULT_ARTICLE)
+const articleHasAudio = computed(() => hasAudio(article.value))
+
 const playback = usePlayback()
 const { status, active, rate, progress, sectionTitle } = playback
 
 const listenButton = ref<InstanceType<typeof CdxToggleButton> | null>(null)
 const onboardingOpen = ref(false)
+const requestAudioOpen = ref(false)
+let onboardingShown = false
+
+watch(article, () => {
+  onboardingOpen.value = false
+  requestAudioOpen.value = false
+})
 
 function onParserReady() {
-  if (!active.value) onboardingOpen.value = true
+  if (articleHasAudio.value && !active.value && !onboardingShown) {
+    onboardingShown = true
+    onboardingOpen.value = true
+  }
 }
 
 function onListenToggle(on: boolean) {
   onboardingOpen.value = false
+  if (!articleHasAudio.value) {
+    requestAudioOpen.value = true
+    return
+  }
   if (on) playback.start()
   else playback.stop()
+}
+
+function onSearchAudioArticles() {
+  void router.push({
+    path: `${route.path.replace(/\/$/, '')}/${SEARCH_ROUTE_SEGMENT}`,
+    query: { ...preservedQueryFromLocationQuery(route.query), search: AUDIO_SEARCH_QUERY },
+  })
 }
 
 function onTryAudiobook() {
@@ -45,12 +82,12 @@ function onTryAudiobook() {
   <MobileWrapper>
     <div class="immersion">
       <ChromeWrapper skin="mobile">
-        <ArticleLive article="Earth" @parser-ready="onParserReady">
+        <ArticleLive :article="article" @parser-ready="onParserReady">
           <template #mobile-tools>
             <CdxToggleButton
               ref="listenButton"
               class="immersion__listen"
-              :model-value="active"
+              :model-value="active && articleHasAudio"
               quiet
               aria-label="Listen to this article"
               @update:model-value="onListenToggle"
@@ -76,7 +113,7 @@ function onTryAudiobook() {
 
       <CdxPopover
         v-model:open="onboardingOpen"
-        class="immersion__onboarding"
+        class="immersion__popover"
         :anchor="listenButton"
         placement="bottom-end"
         render-in-place
@@ -87,6 +124,21 @@ function onTryAudiobook() {
       >
         Try our new audio reading experience. Listen to articles in the background so your curiosity
         can follow you anywhere.
+      </CdxPopover>
+
+      <CdxPopover
+        v-model:open="requestAudioOpen"
+        class="immersion__popover"
+        :anchor="listenButton"
+        placement="bottom-end"
+        render-in-place
+        title="Request audio"
+        use-close-button
+        :primary-action="{ label: 'Search for audio articles', actionType: 'progressive' }"
+        @primary="onSearchAudioArticles"
+      >
+        The audio for this article isn’t available yet. Click below to find more Wikipedia articles
+        with available audio.
       </CdxPopover>
     </div>
   </MobileWrapper>
@@ -107,12 +159,12 @@ function onTryAudiobook() {
   overflow-x: clip;
 }
 
-.immersion__onboarding.cdx-popover {
+.immersion__popover.cdx-popover {
   width: calc(100% - 2 * var(--spacing-100));
 }
 
 /* Codex sits the arrow's base on the popover border, leaving a seam; overlap it by 1px. */
-.immersion__onboarding .cdx-popover__arrow {
+.immersion__popover .cdx-popover__arrow {
   margin-top: var(--border-width-base);
 }
 

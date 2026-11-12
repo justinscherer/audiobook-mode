@@ -73,8 +73,13 @@ export function usePlayback() {
     stops.value = []
   }
 
-  function start() {
+  /** Built lazily so a fresh article render (e.g. returning to it mid-playback) is picked up. */
+  function ensureStops() {
     if (root && !stops.value.length) stops.value = buildStops(root)
+  }
+
+  function start() {
+    ensureStops()
     chapter.value = 0
     if (audio) audio.removeAttribute('src')
     playFrom(0, 0)
@@ -135,12 +140,14 @@ export function usePlayback() {
   }
 
   function next() {
+    ensureStops()
     const i = currentStopIndex()
     if (i + 1 < stops.value.length) skipTo(i + 1)
     else if (chapter.value + 1 < chapters.length) playFrom(chapter.value + 1, 0)
   }
 
   function previous() {
+    ensureStops()
     skipTo(Math.max(0, currentStopIndex() - 1))
   }
 
