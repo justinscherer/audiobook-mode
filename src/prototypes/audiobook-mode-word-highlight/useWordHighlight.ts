@@ -76,7 +76,8 @@ export function useWordHighlight(opts: {
   function attach(root: HTMLElement) {
     spans = alignArticle(root)
     current = null
-    update(true)
+    if (following.value) reveal()
+    else update()
   }
 
   function detach() {
@@ -84,9 +85,30 @@ export function useWordHighlight(opts: {
     spans = []
   }
 
+  /** The closest matched word to the reading position, for when the spoken one has no match. */
+  function nearestMatched(): HTMLElement | null {
+    const forChapter = spans[opts.chapter.value] ?? []
+    const idx = spokenIndex()
+    for (let d = 0; d < forChapter.length; d++) {
+      const el = forChapter[idx - d] ?? forChapter[idx + d]
+      if (el) return el
+    }
+    return null
+  }
+
+  /** Brings the reading position into view now, even mid-way through an unmatched passage. */
+  function reveal() {
+    update(true)
+    if (!current && opts.active.value) {
+      const el = nearestMatched()
+      if (el) keepInView(el, true)
+    }
+  }
+
+  /** Resume following and bring the reading position into view. */
   function follow() {
     following.value = true
-    update(true)
+    reveal()
   }
 
   watch([opts.chapter, opts.time, opts.active], () => update())

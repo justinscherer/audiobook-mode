@@ -31,13 +31,13 @@ useConfig().user.value = 'logged-out'
 
 const route = useRoute()
 const router = useRouter()
-const { titleFromQuery } = useWikiPageTitleQuery()
+const { titleFromQuery, setWikiPageTitle } = useWikiPageTitleQuery()
 /** In-article links set `?title=`; audio keeps playing while the reader browses. */
 const article = computed(() => titleFromQuery.value ?? DEFAULT_ARTICLE)
 const articleHasAudio = computed(() => hasAudio(article.value))
 
 const playback = usePlayback()
-const { status, active, rate, progress, chapter, time } = playback
+const { status, active, rate, progress, chapter, time, sectionTitle } = playback
 const highlight = useWordHighlight({ chapter, time, active })
 
 const listenButton = ref<InstanceType<typeof CdxToggleButton> | null>(null)
@@ -78,6 +78,17 @@ function startListening() {
 function onTogglePlay() {
   playback.togglePlay()
   if (status.value !== 'paused') highlight.follow()
+}
+
+/** Section title in the transport bar: return to the word being read, from any article. */
+function onShowReadingPosition() {
+  if (articleHasAudio.value) {
+    highlight.follow()
+    return
+  }
+  // The highlight scrolls into view once the article renders and re-attaches.
+  highlight.following.value = true
+  setWikiPageTitle(DEFAULT_ARTICLE)
 }
 
 function onSkip(direction: 'previous' | 'next') {
@@ -123,6 +134,8 @@ function onTryAudiobook() {
         :status="status"
         :rate="rate"
         :progress="progress"
+        :section-title="sectionTitle"
+        @show-reading-position="onShowReadingPosition"
         @toggle-play="onTogglePlay"
         @previous="onSkip('previous')"
         @next="onSkip('next')"

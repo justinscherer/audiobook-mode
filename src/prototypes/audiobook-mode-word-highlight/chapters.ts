@@ -11,15 +11,16 @@ const vttTexts = import.meta.glob('../audiobook-mode/audio/*.vtt', {
   eager: true,
 }) as Record<string, string>
 
-const KEYS = [
-  'Lead',
-  'Etymology',
-  'Composition_and_structure',
-  'Hydrosphere',
-  'Atmosphere_and_climate',
-  'Biosphere',
-  'Human_geography',
-  'In_culture',
+/** Audio file key → section title shown in the transport bar. */
+const SECTIONS: [key: string, title: string][] = [
+  ['Lead', 'Introduction'],
+  ['Etymology', 'Etymology'],
+  ['Composition_and_structure', 'Composition and structure'],
+  ['Hydrosphere', 'Hydrosphere'],
+  ['Atmosphere_and_climate', 'Atmosphere and climate'],
+  ['Biosphere', 'Biosphere'],
+  ['Human_geography', 'Human geography'],
+  ['In_culture', 'In culture'],
 ]
 
 /** A spoken word and when it starts, from the VTT word cues. */
@@ -29,6 +30,7 @@ export interface Word {
 }
 
 export interface Chapter {
+  title: string
   url: string
   /** Approximate length in seconds, from the last VTT cue; replaced by the real one once loaded. */
   duration: number
@@ -52,7 +54,7 @@ function parseVtt(vtt: string): { words: Word[]; end: number } {
   return { words, end }
 }
 
-export const chapters: Chapter[] = KEYS.map((key) => {
+export const chapters: Chapter[] = SECTIONS.map(([key, title]) => {
   const { words, end } = parseVtt(vttTexts[`../audiobook-mode/audio/${key}.vtt`] ?? '')
-  return { url: mp3Urls[`../audiobook-mode/audio/${key}.mp3`], duration: end, words }
+  return { title, url: mp3Urls[`../audiobook-mode/audio/${key}.mp3`], duration: end, words }
 })

@@ -25,6 +25,7 @@ export function usePlayback() {
   const offsetOf = (idx: number) => durations.slice(0, idx).reduce((sum, d) => sum + d, 0)
   const position = computed(() => offsetOf(chapter.value) + time.value)
   const progress = computed(() => (total.value ? Math.min(1, position.value / total.value) : 0))
+  const sectionTitle = computed(() => chapters[chapter.value].title)
 
   function ensureAudio(): HTMLAudioElement {
     if (audio) return audio
@@ -141,6 +142,7 @@ export function usePlayback() {
     active,
     rate,
     progress,
+    sectionTitle,
     chapter,
     time,
     start,

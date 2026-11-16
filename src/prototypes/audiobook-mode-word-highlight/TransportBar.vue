@@ -6,6 +6,7 @@ import {
   cdxIconDoubleChevronEnd,
   cdxIconDoubleChevronStart,
   cdxIconPlay,
+  cdxIconVolumeUp,
 } from '@wikimedia/codex-icons'
 
 import { pauseIcon } from '../audiobook-mode/icons'
@@ -15,6 +16,7 @@ const props = defineProps<{
   status: PlaybackStatus
   rate: number
   progress: number
+  sectionTitle: string
 }>()
 
 const emit = defineEmits<{
@@ -22,6 +24,8 @@ const emit = defineEmits<{
   previous: []
   next: []
   close: []
+  /** The section title was tapped: bring the word being read into view. */
+  showReadingPosition: []
   'update:rate': [rate: number]
 }>()
 
@@ -41,67 +45,80 @@ const selectedSpeed = computed({
 
 <template>
   <div class="transport" :class="{ 'transport--loading': props.status === 'loading' }">
-    <div
-      class="transport__progress"
-      role="progressbar"
-      aria-label="Listening progress"
-      :aria-valuenow="Math.round(props.progress * 100)"
-      aria-valuemin="0"
-      aria-valuemax="100"
-      :style="{ width: `${props.progress * 100}%` }"
-    />
-
-    <CdxButton
-      ref="speedAnchor"
-      class="transport__speed"
-      :class="{ 'transport__speed--open': speedOpen }"
-      action="progressive"
-      weight="quiet"
-      size="large"
-      aria-label="Playback speed"
-      :aria-expanded="speedOpen"
-      @click="speedOpen = !speedOpen"
-    >
-      {{ formatRate(props.rate) }}
-    </CdxButton>
-
-    <div class="transport__buttons">
-      <CdxButton
-        action="progressive"
-        weight="quiet"
-        size="large"
-        aria-label="Back 30 seconds"
-        @click="emit('previous')"
+    <div class="transport__section">
+      <CdxIcon class="transport__section-icon" :icon="cdxIconVolumeUp" size="small" />
+      <button
+        type="button"
+        class="transport__section-link"
+        :aria-label="`${props.sectionTitle}: show the word being read`"
+        @click="emit('showReadingPosition')"
       >
-        <CdxIcon :icon="cdxIconDoubleChevronStart" />
-      </CdxButton>
-      <CdxProgressIndicator v-if="props.status === 'loading'" class="transport__spinner">
-        Loading audio
-      </CdxProgressIndicator>
-      <CdxButton
-        v-else
-        action="progressive"
-        weight="quiet"
-        size="large"
-        :aria-label="props.status === 'paused' ? 'Play' : 'Pause'"
-        @click="emit('togglePlay')"
-      >
-        <CdxIcon :icon="props.status === 'paused' ? cdxIconPlay : pauseIcon" />
-      </CdxButton>
-      <CdxButton
-        action="progressive"
-        weight="quiet"
-        size="large"
-        aria-label="Forward 30 seconds"
-        @click="emit('next')"
-      >
-        <CdxIcon :icon="cdxIconDoubleChevronEnd" />
-      </CdxButton>
+        {{ props.sectionTitle }}
+      </button>
+      <div
+        class="transport__progress"
+        role="progressbar"
+        aria-label="Listening progress"
+        :aria-valuenow="Math.round(props.progress * 100)"
+        aria-valuemin="0"
+        aria-valuemax="100"
+        :style="{ width: `${props.progress * 100}%` }"
+      />
     </div>
 
-    <CdxButton weight="quiet" size="large" aria-label="Close audio" @click="emit('close')">
-      <CdxIcon :icon="cdxIconClose" />
-    </CdxButton>
+    <div class="transport__controls">
+      <CdxButton
+        ref="speedAnchor"
+        class="transport__speed"
+        :class="{ 'transport__speed--open': speedOpen }"
+        action="progressive"
+        weight="quiet"
+        size="large"
+        aria-label="Playback speed"
+        :aria-expanded="speedOpen"
+        @click="speedOpen = !speedOpen"
+      >
+        {{ formatRate(props.rate) }}
+      </CdxButton>
+
+      <div class="transport__buttons">
+        <CdxButton
+          action="progressive"
+          weight="quiet"
+          size="large"
+          aria-label="Back 30 seconds"
+          @click="emit('previous')"
+        >
+          <CdxIcon :icon="cdxIconDoubleChevronStart" />
+        </CdxButton>
+        <CdxProgressIndicator v-if="props.status === 'loading'" class="transport__spinner">
+          Loading audio
+        </CdxProgressIndicator>
+        <CdxButton
+          v-else
+          action="progressive"
+          weight="quiet"
+          size="large"
+          :aria-label="props.status === 'paused' ? 'Play' : 'Pause'"
+          @click="emit('togglePlay')"
+        >
+          <CdxIcon :icon="props.status === 'paused' ? cdxIconPlay : pauseIcon" />
+        </CdxButton>
+        <CdxButton
+          action="progressive"
+          weight="quiet"
+          size="large"
+          aria-label="Forward 30 seconds"
+          @click="emit('next')"
+        >
+          <CdxIcon :icon="cdxIconDoubleChevronEnd" />
+        </CdxButton>
+      </div>
+
+      <CdxButton weight="quiet" size="large" aria-label="Close audio" @click="emit('close')">
+        <CdxIcon :icon="cdxIconClose" />
+      </CdxButton>
+    </div>
 
     <CdxPopover
       v-model:open="speedOpen"
@@ -127,16 +144,71 @@ const selectedSpeed = computed({
   bottom: 0;
   z-index: 10;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: var(--spacing-50);
   padding-block: var(--spacing-35);
   background-color: var(--background-color-interactive);
   border-top: var(--border-width-base) solid var(--border-color-muted);
 }
 
+.transport__section {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-35);
+  padding: 0 var(--spacing-75) var(--spacing-25);
+  border-bottom: var(--border-width-base) solid var(--border-color-subtle);
+}
+
+.transport__section-icon {
+  flex-shrink: 0;
+  color: var(--color-base);
+}
+
+/* A button (it scrolls, it doesn't navigate) with Codex's link mixin styles. */
+.transport__section-link {
+  min-width: 0;
+  overflow: hidden;
+  padding: 0;
+  border: 0;
+  border-radius: var(--border-radius-base);
+  background: none;
+  color: var(--color-link);
+  font: inherit;
+  font-size: var(--font-size-small);
+  line-height: var(--line-height-small);
+  text-align: start;
+  text-decoration: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.transport__section-link:hover {
+  color: var(--color-link--hover);
+  text-decoration: var(--text-decoration-underline);
+}
+
+.transport__section-link:active {
+  color: var(--color-link--active);
+  text-decoration: var(--text-decoration-underline);
+}
+
+.transport__section-link:focus-visible {
+  outline: var(--border-style-base) var(--border-width-thick)
+    var(--outline-color-progressive--focus);
+}
+
+.transport__controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Sits centred on the section row's divider. */
 .transport__progress {
   position: absolute;
-  top: calc(-1 * var(--border-width-base));
+  bottom: calc(-2 * var(--border-width-base));
   left: 0;
   height: 3px;
   background-color: var(--background-color-progressive);
