@@ -246,7 +246,6 @@ const selectedSpeed = computed({
   font-size: var(--font-size-small);
 }
 
-
 .transport__buttons {
   display: flex;
   align-items: center;
