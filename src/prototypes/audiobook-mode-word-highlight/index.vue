@@ -207,11 +207,7 @@ function onTryAudiobook() {
 }
 
 /* The article word being spoken (spans added by alignWords.ts). */
-/*
- * Design's `content-added` colour. Codex 2.7's --background-color-content-added
- * is #a3d3ff, so the Figma value is used as given.
- */
 .audio-word--current {
-  background-color: #afb6e9;
+  background-color: var(--background-color-progressive-subtle);
 }
 </style>

@@ -103,7 +103,6 @@ const selectedSpeed = computed({
         </CdxProgressIndicator>
         <CdxButton
           v-else
-          class="transport__play"
           action="progressive"
           weight="quiet"
           size="large"
@@ -247,11 +246,6 @@ const selectedSpeed = computed({
   font-size: var(--font-size-small);
 }
 
-/* Play/pause always shows Codex's quiet-progressive active state. */
-.transport__play.cdx-button.cdx-button--weight-quiet:enabled {
-  background-color: var(--background-color-progressive-subtle--active);
-  color: var(--color-progressive--active);
-}
 
 .transport__buttons {
   display: flex;
