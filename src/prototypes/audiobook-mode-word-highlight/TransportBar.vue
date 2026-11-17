@@ -232,7 +232,7 @@ const selectedSpeed = computed({
 
 /* Loaded-but-unplayed audio, ahead of the played portion. */
 .transport__progress--buffered {
-  background-color: var(--border-color-interactive);
+  background-color: var(--border-color-base);
 }
 
 .transport__neutral.cdx-button {
