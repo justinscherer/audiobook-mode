@@ -16,6 +16,8 @@ const props = defineProps<{
   status: PlaybackStatus
   rate: number
   progress: number
+  /** Fraction of the whole article loaded ahead of the playhead. */
+  buffered: number
   sectionTitle: string
 }>()
 
@@ -56,6 +58,11 @@ const selectedSpeed = computed({
         {{ props.sectionTitle }}
       </button>
       <div
+        class="transport__progress transport__progress--buffered"
+        aria-hidden="true"
+        :style="{ width: `${Math.max(props.buffered, props.progress) * 100}%` }"
+      />
+      <div
         class="transport__progress"
         role="progressbar"
         aria-label="Listening progress"
@@ -69,9 +76,8 @@ const selectedSpeed = computed({
     <div class="transport__controls">
       <CdxButton
         ref="speedAnchor"
-        class="transport__speed"
+        class="transport__speed transport__neutral"
         :class="{ 'transport__speed--open': speedOpen }"
-        action="progressive"
         weight="quiet"
         size="large"
         aria-label="Playback speed"
@@ -83,19 +89,21 @@ const selectedSpeed = computed({
 
       <div class="transport__buttons">
         <CdxButton
-          action="progressive"
+          class="transport__neutral transport__skip"
           weight="quiet"
           size="large"
           aria-label="Back 30 seconds"
           @click="emit('previous')"
         >
           <CdxIcon :icon="cdxIconDoubleChevronStart" />
+          <span aria-hidden="true">30</span>
         </CdxButton>
         <CdxProgressIndicator v-if="props.status === 'loading'" class="transport__spinner">
           Loading audio
         </CdxProgressIndicator>
         <CdxButton
           v-else
+          class="transport__play"
           action="progressive"
           weight="quiet"
           size="large"
@@ -105,17 +113,24 @@ const selectedSpeed = computed({
           <CdxIcon :icon="props.status === 'paused' ? cdxIconPlay : pauseIcon" />
         </CdxButton>
         <CdxButton
-          action="progressive"
+          class="transport__neutral transport__skip"
           weight="quiet"
           size="large"
           aria-label="Forward 30 seconds"
           @click="emit('next')"
         >
+          <span aria-hidden="true">30</span>
           <CdxIcon :icon="cdxIconDoubleChevronEnd" />
         </CdxButton>
       </div>
 
-      <CdxButton weight="quiet" size="large" aria-label="Close audio" @click="emit('close')">
+      <CdxButton
+        class="transport__neutral"
+        weight="quiet"
+        size="large"
+        aria-label="Close audio"
+        @click="emit('close')"
+      >
         <CdxIcon :icon="cdxIconClose" />
       </CdxButton>
     </div>
@@ -162,7 +177,7 @@ const selectedSpeed = computed({
 
 .transport__section-icon {
   flex-shrink: 0;
-  color: var(--color-base);
+  color: var(--color-neutral);
 }
 
 /* A button (it scrolls, it doesn't navigate) with Codex's link mixin styles. */
@@ -176,6 +191,7 @@ const selectedSpeed = computed({
   color: var(--color-link);
   font: inherit;
   font-size: var(--font-size-small);
+  font-weight: var(--font-weight-bold);
   line-height: var(--line-height-small);
   text-align: start;
   text-decoration: none;
@@ -215,8 +231,26 @@ const selectedSpeed = computed({
   transition: width 250ms linear;
 }
 
-.transport--loading .transport__progress {
+/* Loaded-but-unplayed audio, ahead of the played portion. */
+.transport__progress--buffered {
   background-color: var(--border-color-interactive);
+}
+
+.transport__neutral.cdx-button {
+  color: var(--color-neutral);
+}
+
+/* Icon + "30", tighter than Codex's icon/label gap, per the design. */
+.transport__skip.cdx-button {
+  gap: 0;
+  padding-inline: var(--spacing-100) var(--spacing-75);
+  font-size: var(--font-size-small);
+}
+
+/* Play/pause always shows Codex's quiet-progressive active state. */
+.transport__play.cdx-button.cdx-button--weight-quiet:enabled {
+  background-color: var(--background-color-progressive-subtle--active);
+  color: var(--color-progressive--active);
 }
 
 .transport__buttons {

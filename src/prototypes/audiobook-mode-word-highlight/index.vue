@@ -37,7 +37,7 @@ const article = computed(() => titleFromQuery.value ?? DEFAULT_ARTICLE)
 const articleHasAudio = computed(() => hasAudio(article.value))
 
 const playback = usePlayback()
-const { status, active, rate, progress, chapter, time, sectionTitle } = playback
+const { status, active, rate, progress, buffered, chapter, time, sectionTitle } = playback
 const highlight = useWordHighlight({ chapter, time, active })
 
 const listenButton = ref<InstanceType<typeof CdxToggleButton> | null>(null)
@@ -134,6 +134,7 @@ function onTryAudiobook() {
         :status="status"
         :rate="rate"
         :progress="progress"
+        :buffered="buffered"
         :section-title="sectionTitle"
         @show-reading-position="onShowReadingPosition"
         @toggle-play="onTogglePlay"
@@ -206,7 +207,11 @@ function onTryAudiobook() {
 }
 
 /* The article word being spoken (spans added by alignWords.ts). */
+/*
+ * Design's `content-added` colour. Codex 2.7's --background-color-content-added
+ * is #a3d3ff, so the Figma value is used as given.
+ */
 .audio-word--current {
-  background-color: var(--background-color-progressive-subtle);
+  background-color: #afb6e9;
 }
 </style>

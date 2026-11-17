@@ -26,6 +26,22 @@ export function usePlayback() {
   const position = computed(() => offsetOf(chapter.value) + time.value)
   const progress = computed(() => (total.value ? Math.min(1, position.value / total.value) : 0))
   const sectionTitle = computed(() => chapters[chapter.value].title)
+  /** End of the loaded stretch the playhead sits in, in seconds of the current file. */
+  const bufferedTime = ref(0)
+  const buffered = computed(() =>
+    total.value ? Math.min(1, (offsetOf(chapter.value) + bufferedTime.value) / total.value) : 0,
+  )
+
+  function readBuffered(a: HTMLAudioElement) {
+    const ranges = a.buffered
+    for (let i = 0; i < ranges.length; i++) {
+      if (ranges.start(i) <= a.currentTime + 0.5 && a.currentTime <= ranges.end(i)) {
+        bufferedTime.value = ranges.end(i)
+        return
+      }
+    }
+    bufferedTime.value = a.currentTime
+  }
 
   function ensureAudio(): HTMLAudioElement {
     if (audio) return audio
@@ -36,7 +52,9 @@ export function usePlayback() {
     })
     a.addEventListener('timeupdate', () => {
       time.value = a.currentTime
+      readBuffered(a)
     })
+    a.addEventListener('progress', () => readBuffered(a))
     a.addEventListener('waiting', () => {
       if (status.value === 'playing') status.value = 'loading'
     })
@@ -57,6 +75,7 @@ export function usePlayback() {
     status.value = autoplay ? 'loading' : 'paused'
     if (chapterIdx !== chapter.value || !a.src) {
       chapter.value = chapterIdx
+      bufferedTime.value = seconds
       a.src = chapters[chapterIdx].url
       if (seconds > 0) {
         a.addEventListener('loadedmetadata', () => (a.currentTime = seconds), { once: true })
@@ -122,6 +141,7 @@ export function usePlayback() {
     status.value = 'idle'
     chapter.value = 0
     time.value = 0
+    bufferedTime.value = 0
   }
 
   const next = () => seekTo(position.value + SKIP_SECONDS)
@@ -142,6 +162,7 @@ export function usePlayback() {
     active,
     rate,
     progress,
+    buffered,
     sectionTitle,
     chapter,
     time,
